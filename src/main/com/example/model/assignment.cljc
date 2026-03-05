@@ -70,9 +70,9 @@
      {::pc/params #{:assignment/id}
       ::pc/output [:assignment/id]}
      (form/save-form* env
-                      {::form/id        id
-                       ::form/master-pk :assignment/id
-                       ::form/delta     {[:assignment/id id] {:assignment/returned-on {:after (dt/now)}}}})
+                      {:com.fulcrologic.rad.form/id        id
+                       :com.fulcrologic.rad.form/master-pk :assignment/id
+                       :com.fulcrologic.rad.form/delta     {[:assignment/id id] {:assignment/returned-on {:after (dt/now)}}}})
      {:assignment/id id})
    :cljs
    (defmutation return-assignment [{:assignment/keys [id]}]
