@@ -45,7 +45,7 @@ Clojure projects can define a list of optional dependencies. When working on thi
 
 To do this open the Clojure Deps tab (usually on the right edge) and open "Aliases". Turn on the "dev" and "test" alias, and then press the "refresh" button at the top of that panel.
 
-![Clojure Deps](docs/clojure-deps.png)
+![Clojure Deps](clojure-deps.png)
 
 ### Add a REPL
 
@@ -53,13 +53,13 @@ You need to add a REPL. This is done in IntelliJ **Run > Edit Configurations ...
 
 Make it look like this:
 
-![Clojure REPL](docs/clj-repl.png)
+![Clojure REPL](clj-repl.png)
 
 ### Run a REPL
 
 The toolbar at the top of IntelliJ will now include your REPL setup. Choose it (from the dropdown) and press the Play button to run it. This should open up a REPL panel in the IDE where you can run Clojure Code.
 
-![Run REPL](docs/clj-run.png)
+![Run REPL](clj-run.png)
 
 ### Load and Run Code
 
@@ -95,7 +95,7 @@ Now, you can send any or all of this expression to your active REPL to see what 
 - Send Top Form to REPL
 - Send Form Before Caret to REPL
 
-![Send to REPL](docs/send-repl.png)
+![Send to REPL](send-repl.png)
 
 Play with those two keyboard shortcuts until you understand exactly what they do. They are the most common operation you will do when working interactively with Clojure.
 
@@ -144,7 +144,7 @@ Make sure your REPL is running, and use the keyboard shortcuts to do the followi
 - Switch REPL NS to current File
 - Load File in REPL
 
-![Switch and Load](docs/switch-and-load.png)
+![Switch and Load](switch-and-load.png)
 
 **NOTE:** Your key bindings may be different.
 
