@@ -37,4 +37,11 @@
                   #?(:clj
                      {:equipment/all-equipment (queries/get-all-equipment env nil)}))})
 
-(def attributes [id kind serial description all-equipment])
+(defattr all-unassigned-equipment :equipment/all-unassigned-equipment :ref
+  {ao/target    :equipment/id
+   ::pc/output  [{:equipment/all-unassigned-equipment [:equipment/id]}]
+   ::pc/resolve (fn [env _]
+                  #?(:clj
+                     {:equipment/all-unassigned-equipment (queries/get-unassigned-equipment env nil)}))})
+
+(def attributes [id kind serial description all-equipment all-unassigned-equipment])

@@ -7,6 +7,7 @@
        :cljs [com.fulcrologic.fulcro.dom :as dom :refer [div label input]])
     [com.example.ui.account-forms :refer [AccountForm AccountList]]
     [com.example.ui.dashboard :as dashboard]
+    [com.example.ui.equipment-forms :refer [EquipmentForm EquipmentReport AssignmentForm AssignmentReport]]
     [com.example.ui.item-forms :refer [ItemForm InventoryReport]]
     [com.example.ui.login-dialog :refer [LoginForm]]
     [com.example.ui.master-detail :as mdetail]
@@ -33,6 +34,7 @@
 (defrouter MainRouter [this {:keys [current-state route-factory route-props]}]
   {:always-render-body? true
    :router-targets      [LandingPage ItemForm AccountList AccountForm
+                         EquipmentForm EquipmentReport AssignmentForm AssignmentReport
                          sales-report/SalesReport InventoryReport
                          sales-report/RealSalesReport
                          dashboard/Dashboard
@@ -76,6 +78,14 @@
                  (ui-dropdown-menu {}
                    (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this InventoryReport {}))} "View All")
                    (ui-dropdown-item {:onClick (fn [] (form/create! this ItemForm))} "New")))
+               (ui-dropdown {:className "item" :text "Equipment"}
+                 (ui-dropdown-menu {}
+                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this EquipmentReport {}))} "View All")
+                   (ui-dropdown-item {:onClick (fn [] (form/create! this EquipmentForm))} "New")))
+               (ui-dropdown {:className "item" :text "Assignments"}
+                 (ui-dropdown-menu {}
+                   (ui-dropdown-item {:onClick (fn [] (rroute/route-to! this AssignmentReport {}))} "View All")
+                   (ui-dropdown-item {:onClick (fn [] (form/create! this AssignmentForm))} "New")))
                (ui-dropdown {:className "item" :text "Invoices"}
                  (ui-dropdown-menu {}
                    (ui-dropdown-item
