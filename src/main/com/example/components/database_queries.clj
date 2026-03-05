@@ -104,6 +104,19 @@
       (mapv (fn [[id]] {:assignment/id id}) ids))
     (log/error "No database atom for production schema!")))
 
+(defn get-unassigned-equipment
+  "Returns equipment ids that have no current assignment (no assignment with nil returned-on)."
+  [env _query-params]
+  (if-let [db (env->db env)]
+    (let [ids (d/q '[:find ?equipment-id
+                     :where [?eq :equipment/id ?equipment-id]
+                     (not-join [?eq]
+                               [?a :assignment/equipment ?eq]
+                               [(missing? $ ?a :assignment/returned-on)])]
+                   db)]
+      (mapv (fn [[id]] {:equipment/id id}) ids))
+    (log/error "No database atom for production schema!")))
+
 (defn get-line-item-category [env line-item-id]
   (if-let [db (env->db env)]
     (let [id (ffirst
