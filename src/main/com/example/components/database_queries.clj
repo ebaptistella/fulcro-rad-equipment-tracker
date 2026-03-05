@@ -86,6 +86,15 @@
       (mapv (fn [[id]] {:category/id id}) ids))
     (log/error "No database atom for production schema!")))
 
+(defn get-all-equipment
+  [env _query-params]
+  (if-let [db (env->db env)]
+    (let [ids (d/q '[:find ?uuid
+                     :where
+                     [?e :equipment/id ?uuid]] db)]
+      (mapv (fn [[id]] {:equipment/id id}) ids))
+    (log/error "No database atom for production schema!")))
+
 (defn get-line-item-category [env line-item-id]
   (if-let [db (env->db env)]
     (let [id (ffirst
