@@ -12,7 +12,9 @@
        (let [handler-result (handler pathom-env)]
          handler-result)
        (catch Throwable t
-         {:com.fulcrologic.rad.form/errors [{:message (str "Unexpected error saving form: " (ex-message t))}]})))))
+         (if-let [errors (some-> t ex-data :com.fulcrologic.rad.form/errors)]
+           {:com.fulcrologic.rad.form/errors errors}
+           {:com.fulcrologic.rad.form/errors [{:message (str "Unexpected error saving form: " (ex-message t))}]})))))
 
 (def middleware
   (->

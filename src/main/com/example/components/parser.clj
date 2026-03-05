@@ -8,6 +8,7 @@
     [com.example.components.save-middleware :as save]
     [com.example.model :refer [all-attributes]]
     [com.example.model.account :as account]
+    [com.example.model.assignment :as assignment]
     [com.example.model.invoice :as invoice]
     [com.example.model.timezone :as timezone]
     [com.fulcrologic.rad.attributes :as attr]
@@ -50,6 +51,7 @@
      form/resolvers
      (blob/resolvers all-attributes)
      account/resolvers
+     assignment/resolvers
      invoice/resolvers
      item/resolvers
      sales/resolvers

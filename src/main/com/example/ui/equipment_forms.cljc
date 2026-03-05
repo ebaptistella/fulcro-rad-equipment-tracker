@@ -1,7 +1,7 @@
 (ns com.example.ui.equipment-forms
   (:require [com.example.model.assignment :as assignment]
             [com.example.model.equipment :as equipment]
-            [com.fulcrologic.fulcro.components :refer [defsc]]
+            [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
             [com.fulcrologic.rad.form :as form]
             [com.fulcrologic.rad.form-options :as fo]
             [com.fulcrologic.rad.picker-options :as po]
@@ -83,5 +83,10 @@
                            :assignment/assigned-on (fn [_ v] (when v (dt/inst->html-datetime-string v)))
                            :assignment/returned-on (fn [_ v] (if v (dt/inst->html-datetime-string v) "-"))}
    ro/form-links          {assignment/account AssignmentForm}
+   ro/row-actions         [{:label     "Devolver"
+                            :action    (fn [report-instance {:assignment/keys [id]}]
+                                          #?(:cljs
+                                             (comp/transact! report-instance [(assignment/return-assignment {:assignment/id id})])))
+                            :disabled? (fn [_ row] (some? (:assignment/returned-on row)))}]
    ro/run-on-mount?       true
    ro/route               "assignment-report"})

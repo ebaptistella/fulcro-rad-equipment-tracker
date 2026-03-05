@@ -117,6 +117,31 @@
       (mapv (fn [[id]] {:equipment/id id}) ids))
     (log/error "No database atom for production schema!")))
 
+(defn get-current-assignment-for-equipment
+  "Returns the assignment id that currently has the given equipment (no returned-on), or nil.
+   exclude-assignment-id: when updating an assignment, pass its id so it is not considered a conflict."
+  [env equipment-id exclude-assignment-id]
+  (if-let [db (env->db env)]
+    (let [result (if exclude-assignment-id
+                   (d/q '[:find ?assignment-id .
+                          :in $ ?equipment-id ?exclude-id
+                          :where [?eq :equipment/id ?equipment-id]
+                                 [?a :assignment/equipment ?eq]
+                                 [(missing? $ ?a :assignment/returned-on)]
+                                 [?a :assignment/id ?assignment-id]
+                                 [(not= ?assignment-id ?exclude-id)]]
+                        db equipment-id exclude-assignment-id)
+                   (d/q '[:find ?assignment-id .
+                          :in $ ?equipment-id
+                          :where [?eq :equipment/id ?equipment-id]
+                                 [?a :assignment/equipment ?eq]
+                                 [(missing? $ ?a :assignment/returned-on)]
+                                 [?a :assignment/id ?assignment-id]]
+                        db equipment-id))]
+      result)
+    (do (log/error "No database atom for production schema!")
+        nil)))
+
 (defn get-line-item-category [env line-item-id]
   (if-let [db (env->db env)]
     (let [id (ffirst
