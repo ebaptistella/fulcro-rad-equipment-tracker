@@ -76,6 +76,27 @@
      :invoice/date       date}
     extras))
 
+(defn new-equipment
+  "Seed helper. Uses serial as db/id (tempid)."
+  [id kind serial & {:as extras}]
+  (merge
+    {:db/id            serial
+     :equipment/id     id
+     :equipment/kind   kind
+     :equipment/serial serial}
+    extras))
+
+(defn new-assignment
+  "Seed helper. Uses (str id) as db/id (tempid). account-tempid and equipment-tempid are the :db/id of the referenced entities."
+  [id account-tempid equipment-tempid assigned-on & {:as extras}]
+  (merge
+    {:db/id                  (str id)
+     :assignment/id          id
+     :assignment/account     account-tempid
+     :assignment/equipment   equipment-tempid
+     :assignment/assigned-on assigned-on}
+    extras))
+
 
 (comment
   ;; normal table

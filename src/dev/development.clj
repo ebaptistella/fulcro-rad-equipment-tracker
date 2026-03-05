@@ -58,7 +58,23 @@
                                (seed/new-invoice "invoice-4" date-4 "Sally"
                                                  [(seed/new-line-item "Robot" 6 89.99M)])
                                (seed/new-invoice "invoice-5" date-5 "Barbara"
-                                                 [(seed/new-line-item "Building Blocks" 10 20.0M)])]}))))
+                                                 [(seed/new-line-item "Building Blocks" 10 20.0M)])
+                               ;; Equipment (tempid = serial)
+                               (seed/new-equipment (new-uuid 500) :equipment.kind/laptop "SN-LAP-001"
+                                                   :equipment/description "Dell XPS 15")
+                               (seed/new-equipment (new-uuid 501) :equipment.kind/monitor "SN-MON-002"
+                                                   :equipment/description "LG 27\"")
+                               (seed/new-equipment (new-uuid 502) :equipment.kind/keyboard "SN-KBD-003"
+                                                   :equipment/description "Keychron K2")
+                               (seed/new-equipment (new-uuid 503) :equipment.kind/mouse "SN-MOU-004")
+                               (seed/new-equipment (new-uuid 504) :equipment.kind/furniture "SN-DESK-005"
+                                                   :equipment/description "Standing desk")
+                               ;; Assignments (account tempid = name, equipment tempid = serial)
+                               (seed/new-assignment (new-uuid 600) "Tony" "SN-LAP-001" date-1)
+                               (seed/new-assignment (new-uuid 601) "Sally" "SN-MON-002" date-2)
+                               (seed/new-assignment (new-uuid 602) "Sam" "SN-KBD-003" date-3)
+                               (seed/new-assignment (new-uuid 603) "Barbara" "SN-MOU-004" date-4
+                                                   :assignment/returned-on date-5)]}))))
 
 (defn start []
   (mount/start-with-args {:config "config/dev.edn"})
