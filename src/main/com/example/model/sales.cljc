@@ -2,12 +2,12 @@
   "Currently a mock report that generates a large number of rows so we can play with client-side report
  processing of a list of rows."
   (:require
-    [com.fulcrologic.rad.attributes :refer [defattr]]
-    [com.fulcrologic.rad.attributes-options :as ao]
-    [com.fulcrologic.rad.ids :as ids]
-    [com.fulcrologic.rad.report-options :as ro]
-    [com.fulcrologic.rad.type-support.decimal :as math]
-    [com.wsscode.pathom.connect :as pc :refer [defresolver]]))
+   [com.fulcrologic.rad.attributes :refer [defattr]]
+   [com.fulcrologic.rad.attributes-options :as ao]
+   [com.fulcrologic.rad.ids :as ids]
+   [com.fulcrologic.rad.report-options :as ro]
+   [com.fulcrologic.rad.type-support.decimal :as math]
+   [com.wsscode.pathom.connect :as pc :refer [defresolver]]))
 
 (defattr date :sales/date :instant
   {ro/column-heading "Date"
@@ -42,14 +42,14 @@
                                         :sales/cost]}]}
      {:sales-report/rows
       (vec
-        (repeatedly 1000 (fn []
-                           (let [rev (math/numeric (+ 54 (rand-int 1000)))]
-                             {:sales/row-index (ids/new-uuid)
-                              :sales/date      (rand-nth various-dates)
-                              :sales/revenue   rev
-                              :sales/cost      (math/round
-                                                 (math/* rev (math/div 1 (+ 2 (rand-int 4))))
-                                                 2)}))))}))
+       (repeatedly 1000 (fn []
+                          (let [rev (math/numeric (+ 54 (rand-int 1000)))]
+                            {:sales/row-index (ids/new-uuid)
+                             :sales/date      (rand-nth various-dates)
+                             :sales/revenue   rev
+                             :sales/cost      (math/round
+                                               (math/* rev (math/div 1 (+ 2 (rand-int 4))))
+                                               2)}))))}))
 
 #?(:clj
    (def resolvers [sales-report-resolver]))

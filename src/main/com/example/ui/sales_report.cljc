@@ -1,17 +1,17 @@
 (ns com.example.ui.sales-report
   (:require
-    #?(:cljs ["victory" :as victory])
-    [com.example.model.sales :as sales]
-    [com.example.model.invoice :as invoice]
-    [com.fulcrologic.fulcro.components :as comp]
-    #?(:clj  [com.fulcrologic.fulcro.dom-server :as dom]
-       :cljs [com.fulcrologic.fulcro.dom :as dom])
-    [com.fulcrologic.rad.type-support.decimal :as math]
-    [com.fulcrologic.rad.type-support.date-time :as dt]
-    [com.fulcrologic.rad.control :as control]
-    [com.fulcrologic.rad.report-options :as ro]
-    [com.fulcrologic.rad.report :as report]
-    [com.fulcrologic.fulcro.algorithms.react-interop :as interop]))
+   #?(:cljs ["victory" :as victory])
+   [com.example.model.sales :as sales]
+   [com.example.model.invoice :as invoice]
+   [com.fulcrologic.fulcro.components :as comp]
+   #?(:clj  [com.fulcrologic.fulcro.dom-server :as dom]
+      :cljs [com.fulcrologic.fulcro.dom :as dom])
+   [com.fulcrologic.rad.type-support.decimal :as math]
+   [com.fulcrologic.rad.type-support.date-time :as dt]
+   [com.fulcrologic.rad.control :as control]
+   [com.fulcrologic.rad.report-options :as ro]
+   [com.fulcrologic.rad.report :as report]
+   [com.fulcrologic.fulcro.algorithms.react-interop :as interop]))
 
 (def ui-victory-bar #?(:cljs (interop/react-factory victory/VictoryBar)
                        :clj  (constantly "")))
@@ -58,8 +58,7 @@
    ro/control-layout      {:action-buttons [::refresh]
                            :inputs         [[::revenue-filter]]}
 
-
-   ;; If defined: sort is applied to rows after filtering (client-side)
+;; If defined: sort is applied to rows after filtering (client-side)
    ro/initial-sort-params {:sort-by          :sales/date
                            :sortable-columns #{:sales/date :sales/revenue :sales/cost}
                            :ascending?       true}
@@ -139,25 +138,25 @@
                     :month 10
                     20)]
     (dom/div :.ui.container.grid
-      (dom/div :.row
-        (dom/div :.six.wide.column
-          (dom/div :.ui.grid
-            (dom/div :.row
-              (ui-victory-chart {:domainPadding {:x 50}}
-                (ui-victory-bar {:data     current-rows
-                                 :labels   (fn [v] (comp/isoget-in v ["datum" "items-sold"]))
-                                 :barWidth bar-width
-                                 :x        "date-groups"
-                                 :y        "items-sold"})))
-            (dom/div :.row
-              (ui-victory-chart {:domainPadding {:x 50}}
-                (ui-victory-bar {:data           current-rows
-                                 :barWidth       bar-width
-                                 :labels         (fn [v] (math/numeric->currency-str (comp/isoget-in v ["datum" "gross-sales"])))
-                                 :labelComponent (ui-victory-tooltip {})
-                                 :x              "date-groups"
-                                 :y              (fn [datum]
-                                                   (math/numeric->double (comp/isoget datum "gross-sales")))})))))
-        (dom/div :.ten.wide.column
+             (dom/div :.row
+                      (dom/div :.six.wide.column
+                               (dom/div :.ui.grid
+                                        (dom/div :.row
+                                                 (ui-victory-chart {:domainPadding {:x 50}}
+                                                                   (ui-victory-bar {:data     current-rows
+                                                                                    :labels   (fn [v] (comp/isoget-in v ["datum" "items-sold"]))
+                                                                                    :barWidth bar-width
+                                                                                    :x        "date-groups"
+                                                                                    :y        "items-sold"})))
+                                        (dom/div :.row
+                                                 (ui-victory-chart {:domainPadding {:x 50}}
+                                                                   (ui-victory-bar {:data           current-rows
+                                                                                    :barWidth       bar-width
+                                                                                    :labels         (fn [v] (math/numeric->currency-str (comp/isoget-in v ["datum" "gross-sales"])))
+                                                                                    :labelComponent (ui-victory-tooltip {})
+                                                                                    :x              "date-groups"
+                                                                                    :y              (fn [datum]
+                                                                                                      (math/numeric->double (comp/isoget datum "gross-sales")))})))))
+                      (dom/div :.ten.wide.column
           ;; The auto-rendered table
-          (report/render-layout this))))))
+                               (report/render-layout this))))))
