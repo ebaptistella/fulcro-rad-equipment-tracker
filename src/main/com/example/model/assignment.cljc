@@ -4,6 +4,7 @@
             [com.wsscode.pathom.connect :as pc]
             [com.fulcrologic.rad.attributes-options :as ao]
             #?(:clj [com.example.components.database-queries :as queries])
+            #?(:clj [com.example.model.equipment :as equipment])
             #?(:clj [com.fulcrologic.rad.form :as form])
             #?(:clj [com.fulcrologic.rad.middleware.save-middleware :as save-middleware])
             #?(:cljs [com.fulcrologic.fulcro.mutations :as m :refer [defmutation]])))
@@ -44,6 +45,21 @@
                   #?(:clj
                      {:assignment/all-assignments (queries/get-all-assignments env nil)}))})
 
+#?(:clj
+   (pc/defresolver assignment-account-resolver [env {:assignment/keys [id]}]
+     {::pc/input  #{:assignment/id}
+      ::pc/output [{:assignment/account [:account/id :account/name]}]}
+     (when-let [account (queries/get-assignment-account env id)]
+       {:assignment/account account})))
+
+#?(:clj
+   (pc/defresolver assignment-equipment-resolver [env {:assignment/keys [id]}]
+     {::pc/input  #{:assignment/id}
+      ::pc/output [{:assignment/equipment [:equipment/id :equipment/serial :equipment/kind :equipment/kind-label]}]}
+     (when-let [equipment (queries/get-assignment-equipment env id)]
+       (let [kind-label (get equipment/equipment-kinds (:equipment/kind equipment) (name (:equipment/kind equipment)))]
+         {:assignment/equipment (assoc equipment :equipment/kind-label kind-label)}))))
+
 (defn- equipment-id-from-value [value]
   (cond
     (vector? value) (second value)
@@ -80,6 +96,6 @@
              (swap! state assoc-in [:assignment/id id :assignment/returned-on] (dt/now)))
      (remote [_] true)))
 
-#?(:clj (def resolvers [return-assignment]))
+#?(:clj (def resolvers [return-assignment assignment-account-resolver assignment-equipment-resolver]))
 
 (def attributes [id account equipment assigned-on returned-on all-assignments])

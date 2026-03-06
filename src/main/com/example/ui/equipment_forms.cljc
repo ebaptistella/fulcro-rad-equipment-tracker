@@ -72,14 +72,14 @@
    ro/source-attribute    :assignment/all-assignments
    ro/row-pk              assignment/id
    ro/row-query-inclusion [{:assignment/account [:account/name]}
-                           {:assignment/equipment [:equipment/serial :equipment/kind]}]
+                           {:assignment/equipment [:equipment/serial :equipment/kind-label]}]
    ro/columns             [assignment/account assignment/equipment assignment/assigned-on assignment/returned-on]
    ro/column-headings     {:assignment/account   "Account"
                            :assignment/equipment "Equipment"
                            :assignment/assigned-on "Assigned on"
                            :assignment/returned-on "Returned on"}
    ro/column-formatters   {:assignment/account   (fn [_ v] (if v (:account/name v) "-"))
-                           :assignment/equipment (fn [_ v] (if v (str (:equipment/kind v) " " (:equipment/serial v)) "-"))
+                           :assignment/equipment (fn [_ v] (if v (str (:equipment/kind-label v) " " (:equipment/serial v)) "-"))
                            :assignment/assigned-on (fn [_ v] (when v (dt/inst->html-datetime-string v)))
                            :assignment/returned-on (fn [_ v] (if v (dt/inst->html-datetime-string v) "-"))}
    ro/form-links          {assignment/account AssignmentForm}

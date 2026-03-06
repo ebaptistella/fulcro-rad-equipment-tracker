@@ -104,6 +104,28 @@
       (mapv (fn [[id]] {:assignment/id id}) ids))
     (log/error "No database atom for production schema!")))
 
+(defn get-assignment-account
+  "Returns the account map (id and name) for an assignment, for report display."
+  [env assignment-id]
+  (if-let [db (env->db env)]
+    (some-> (d/pull db [{:assignment/account [:account/id :account/name]}] [:assignment/id assignment-id])
+            :assignment/account)
+    (log/error "No database atom for production schema!")))
+
+(defn get-assignment-equipment
+  "Returns the equipment map (id, serial, kind) for an assignment. Normalizes :equipment/kind
+   from Datomic ref {:db/ident k} to keyword. kind-label is added by the assignment resolver."
+  [env assignment-id]
+  (if-let [db (env->db env)]
+    (let [raw (some-> (d/pull db [{:assignment/equipment [:equipment/id :equipment/serial {:equipment/kind [:db/ident]}]}] [:assignment/id assignment-id])
+                      :assignment/equipment)]
+      (when raw
+        (update raw :equipment/kind
+                (fn [k] (cond (keyword? k) k
+                             (map? k)     (:db/ident k)
+                             :else        k)))))
+    (log/error "No database atom for production schema!")))
+
 (defn get-unassigned-equipment
   "Returns equipment ids that have no current assignment (no assignment with nil returned-on)."
   [env _query-params]
