@@ -16,6 +16,23 @@
        (with-out-str (pprint ~v))
        "================================================================================")))
 
+(def ^:const redacted-placeholder "***REDACTED***")
+
+(defn elide-sensitive
+  "Substitui recursivamente valores de chaves em sensitive-keys por um placeholder.
+   sensitive-keys é um set de keywords (ex: #{:password :com.example.model.account/password})."
+  [sensitive-keys data]
+  (cond
+    (map? data)
+    (reduce-kv
+     (fn [m k v]
+       (assoc m k (if (contains? sensitive-keys k) redacted-placeholder (elide-sensitive sensitive-keys v))))
+     {}
+     data)
+    (vector? data) (mapv #(elide-sensitive sensitive-keys %) data)
+    (seq? data)    (map #(elide-sensitive sensitive-keys %) data)
+    :else          data))
+
 (defn pretty
   "Marks a data item for pretty formatting when logging it (requires installing logging middleware)."
   [v]
@@ -53,11 +70,18 @@
 #?(:clj
    (defn configure-logging!
      "Configure clojure logging for this project. `config` is the global config map that should contain
-     `:taoensso.timbre/logging-config` as a key."
+     `:taoensso.timbre/logging-config` as a key. Sensitive keys from pathom config are elided in all log output."
      [config]
-     (let [{:keys [taoensso.timbre/logging-config]} config]
+     (let [{:keys [taoensso.timbre/logging-config]} config
+           sensitive-keys (get-in config [:com.fulcrologic.rad.pathom/config :sensitive-keys] #{})
+           elide-middleware
+           (fn [data]
+             (update data :vargs
+                     (fn [args]
+                       (mapv #(elide-sensitive sensitive-keys %) args))))]
        (log/merge-config! (assoc logging-config
-                                 :middleware [(pretty-middleware #(with-out-str (pprint %)))]
+                                 :middleware [elide-middleware
+                                              (pretty-middleware #(with-out-str (pprint %)))]
                                  :output-fn custom-output-fn))
        (log/debug "Configured Timbre with " (p logging-config)))))
 
