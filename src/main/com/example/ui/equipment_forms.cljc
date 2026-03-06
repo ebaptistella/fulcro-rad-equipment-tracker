@@ -83,10 +83,10 @@
                            :assignment/assigned-on (fn [_ v] (when v (dt/inst->html-datetime-string v)))
                            :assignment/returned-on (fn [_ v] (if v (dt/inst->html-datetime-string v) "-"))}
    ro/form-links          {assignment/account AssignmentForm}
-   ro/row-actions         [{:label     "Devolver"
+   ro/row-actions         [{:label     "Unassign"
                             :action    (fn [report-instance {:assignment/keys [id]}]
-                                          #?(:cljs
-                                             (comp/transact! report-instance [(assignment/return-assignment {:assignment/id id})])))
+                                         #?(:cljs
+                                            (comp/transact! report-instance [(assignment/return-assignment {:assignment/id id})])))
                             :disabled? (fn [_ row] (some? (:assignment/returned-on row)))}]
    ro/run-on-mount?       true
    ro/route               "assignment-report"})
