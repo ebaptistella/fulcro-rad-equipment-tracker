@@ -164,6 +164,43 @@
     (do (log/error "No database atom for production schema!")
         nil)))
 
+(defn get-current-assignment-with-account-for-equipment
+  "Returns {:assignment/id _ :assignment/account {:account/id _ :account/name _}} for the current assignment of this equipment, or nil."
+  [env equipment-id]
+  (if-let [db (env->db env)]
+    (when-let [assignment-id (get-current-assignment-for-equipment env equipment-id nil)]
+      (d/pull db [:assignment/id {:assignment/account [:account/id :account/name]}] [:assignment/id assignment-id]))
+    (log/error "No database atom for production schema!")))
+
+(defn get-open-assignment-ids-for-account
+  "Returns a seq of assignment ids that belong to this account and have no returned-on (currently assigned)."
+  [env account-id]
+  (if-let [db (env->db env)]
+    (let [ids (d/q '[:find ?assignment-id
+                     :in $ ?account-id
+                     :where [?a :assignment/account ?acc]
+                            [?acc :account/id ?account-id]
+                            [?a :assignment/id ?assignment-id]
+                            [(missing? $ ?a :assignment/returned-on)]]
+                   db account-id)]
+      (mapv first ids))
+    (do (log/error "No database atom for production schema!")
+        [])))
+
+(defn get-equipment-count-for-account
+  "Returns the number of equipment items currently assigned to this account (assignments with no returned-on)."
+  [env account-id]
+  (if-let [db (env->db env)]
+    (let [n (d/q '[:find (count ?a) .
+                   :in $ ?account-id
+                   :where [?a :assignment/account ?acc]
+                          [?acc :account/id ?account-id]
+                          [(missing? $ ?a :assignment/returned-on)]]
+                 db account-id)]
+      (or n 0))
+    (do (log/error "No database atom for production schema!")
+        0)))
+
 (defn get-line-item-category [env line-item-id]
   (if-let [db (env->db env)]
     (let [id (ffirst

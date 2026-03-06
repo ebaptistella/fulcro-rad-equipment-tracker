@@ -30,6 +30,10 @@
   {ao/identities #{:equipment/id}
    ao/schema     :production})
 
+(defattr current-assignee :equipment/current-assignee :string
+  {ao/identities #{:equipment/id}
+   ao/read-only? true})
+
 (defattr all-equipment :equipment/all-equipment :ref
   {ao/target    :equipment/id
    ::pc/output  [{:equipment/all-equipment [:equipment/id]}]
@@ -44,4 +48,14 @@
                   #?(:clj
                      {:equipment/all-unassigned-equipment (queries/get-unassigned-equipment env nil)}))})
 
-(def attributes [id kind serial description all-equipment all-unassigned-equipment])
+#?(:clj
+   (pc/defresolver equipment-current-assignment-resolver [env {:equipment/keys [id]}]
+     {::pc/input  #{:equipment/id}
+      ::pc/output [:equipment/current-assignee {:equipment/current-assignment [:assignment/id {:assignment/account [:account/id :account/name]}]}]}
+     (when-let [assignment (queries/get-current-assignment-with-account-for-equipment env id)]
+       {:equipment/current-assignee   (get-in assignment [:assignment/account :account/name])
+        :equipment/current-assignment assignment})))
+
+(def attributes [id kind serial description current-assignee all-equipment all-unassigned-equipment])
+
+#?(:clj (def resolvers [equipment-current-assignment-resolver]))

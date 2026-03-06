@@ -1,6 +1,7 @@
 (ns com.example.ui.equipment-forms
   (:require [com.example.model.assignment :as assignment]
             [com.example.model.equipment :as equipment]
+            [com.fulcrologic.fulcro.algorithms.tempid :as tempid]
             [com.fulcrologic.fulcro.components :as comp :refer [defsc]]
             [com.fulcrologic.rad.form :as form]
             [com.fulcrologic.rad.form-options :as fo]
@@ -17,18 +18,6 @@
    fo/route-prefix  "equipment"
    fo/title         "Edit Equipment"})
 
-(report/defsc-report EquipmentReport [this props]
-  {ro/title               "Equipment Report"
-   ro/source-attribute    :equipment/all-equipment
-   ro/row-pk              equipment/id
-   ro/columns             [equipment/kind equipment/serial equipment/description]
-   ro/column-headings     {:equipment/kind "Kind"
-                           :equipment/serial "Serial"
-                           :equipment/description "Description"}
-   ro/form-links          {equipment/serial EquipmentForm}
-   ro/run-on-mount?       true
-   ro/route               "equipment-report"})
-
 (defsc AccountQuery [_ _]
   {:query [:account/id :account/name :account/email]
    :ident :account/id})
@@ -37,12 +26,56 @@
   {:query [:equipment/id :equipment/serial :equipment/kind]
    :ident :equipment/id})
 
+(report/defsc-report EquipmentReport [this props]
+  {ro/title               "Equipment Report"
+   ro/source-attribute    :equipment/all-equipment
+   ro/row-pk              equipment/id
+   ro/row-query-inclusion [{:equipment/current-assignment [:assignment/id {:assignment/account [:account/id :account/name]}]}]
+   ro/columns             [equipment/kind equipment/serial equipment/description equipment/current-assignee]
+   ro/column-headings     {:equipment/kind "Kind"
+                           :equipment/serial "Serial"
+                           :equipment/description "Description"
+                           :equipment/current-assignee "Current assignee"}
+   ro/column-formatters   {:equipment/current-assignee (fn [_ v] (or v "-"))}
+   ro/form-links          {equipment/serial EquipmentForm}
+   ro/row-actions         [{:label     "Unassign"
+                            :action    (fn [report-instance row]
+                                         (when-let [assignment-id (get-in row [:equipment/current-assignment :assignment/id])]
+                                           #?(:cljs (comp/transact! report-instance [(assignment/return-assignment {:assignment/id assignment-id})]))))
+                            :disabled? (fn [_ row] (nil? (get-in row [:equipment/current-assignment :assignment/id])))}]
+   ro/row-visible?        (fn [{::keys [filter-account]} row]
+                            (or (nil? filter-account)
+                                (= filter-account (get-in row [:equipment/current-assignment :assignment/account :account/id]))))
+   ro/controls            {::filter-account {:type          :picker
+                                             :local?        true
+                                             :label         "Filter by account"
+                                             :placeholder   "All accounts"
+                                             :default-value (fn [report] (get (comp/props report) :filter-account))
+                                             :query-key     :account/all-accounts
+                                             :query         [:account/id :account/name]
+                                             :query-component AccountQuery
+                                             :options-xform (fn [_ options]
+                                                              (cons {:text "All" :value nil}
+                                                                    (mapv (fn [{:account/keys [id name]}]
+                                                                            {:text name :value id})
+                                                                          (sort-by :account/name options))))
+                                             :onChange      (fn [this _] (report/filter-rows! this))}}
+   ro/control-layout     {:inputs [[::filter-account]]}
+   ro/run-on-mount?       true
+   ro/route               "equipment-report"})
+
 (form/defsc-form AssignmentForm [this props]
   {fo/id             assignment/id
    fo/attributes     [assignment/account
                       assignment/equipment
                       assignment/assigned-on
                       assignment/returned-on]
+   ;; When editing an existing assignment, only return date is editable.
+   fo/field-visible? (fn [form _ attr]
+                       (if (= attr :assignment/returned-on)
+                         true
+                         (let [id (get form :assignment/id)]
+                           (or (nil? id) (tempid/tempid? id)))))
    fo/field-styles   {:assignment/account   :pick-one
                       :assignment/equipment :pick-one
                       :assignment/assigned-on :datetime

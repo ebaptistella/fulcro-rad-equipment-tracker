@@ -112,6 +112,10 @@
           {::pc/output [{:all-tags [:tag/id :tag/label]}]}
           {:all-tags (queries/get-all-tags env query-params)}))
 
+(defattr equipment-count :account/equipment-count :int
+  {ao/identities #{:account/id}
+   ao/read-only? true})
+
 (defattr all-accounts :account/all-accounts :ref
   {ao/target     :account/id
    ao/pc-output  [{:account/all-accounts [:account/id]}]
@@ -181,15 +185,19 @@
      (let [{:keys [before after]} avatar-url]
        value)))
 
-(declare disable-account)
-
 #?(:clj
    (defmutation set-account-active [env {:account/keys [id active?]}]
-     {::pc/params #{:account/id}
+     {::pc/params #{:account/id :account/active?}
       ::pc/output [:account/id]}
      (form/save-form* env {::form/id        id
                            ::form/master-pk :account/id
-                           ::form/delta     {[:account/id id] {:account/active? {:before (not active?) :after (boolean active?)}}}}))
+                           ::form/delta     {[:account/id id] {:account/active? {:before (not active?) :after (boolean active?)}}}})
+     (when (false? active?)
+       (doseq [assignment-id (queries/get-open-assignment-ids-for-account env id)]
+         (form/save-form* env {::form/id        assignment-id
+                               ::form/master-pk :assignment/id
+                               ::form/delta     {[:assignment/id assignment-id] {:assignment/returned-on {:after (datetime/now)}}}})))
+     {:account/id id})
    :cljs
    (defmutation set-account-active [{:account/keys [id active?]}]
      (action [{:keys [state]}]
@@ -197,8 +205,15 @@
      (remote [_] true)))
 
 (def attributes [id name primary-address role email password password-iterations password-salt active?
+                 equipment-count
                  all-accounts account-invoices
                  tags tag-id tag-label])
 
 #?(:clj
-   (def resolvers [login logout check-session set-account-active all-tags]))
+   (pc/defresolver account-equipment-count-resolver [env {:account/keys [id]}]
+     {::pc/input  #{:account/id}
+      ::pc/output [:account/equipment-count]}
+     {:account/equipment-count (queries/get-equipment-count-for-account env id)}))
+
+#?(:clj
+   (def resolvers [login logout check-session set-account-active all-tags account-equipment-count-resolver]))

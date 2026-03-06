@@ -18,7 +18,9 @@
    [com.fulcrologic.rad.picker-options :as po]
    [com.fulcrologic.rad.report :as report]
    [com.fulcrologic.rad.report-options :as ro]
-   [com.fulcrologic.rad.semantic-ui-options :as suo]))
+   [com.fulcrologic.rad.routing :as rroute]
+   [com.fulcrologic.rad.semantic-ui-options :as suo]
+   [com.example.ui.equipment-forms :refer [EquipmentReport]]))
 
 (def account-validator
   (fs/make-validator (fn [form field]
@@ -91,11 +93,12 @@
    fo/default-values {:account/active? true}})
 
 (defsc AccountListItem [this
-                        {:account/keys [id name active?] :as props}
+                        {:account/keys [id name active? equipment-count] :as props}
                         {:keys [report-instance row-class ::report/idx]}]
-  {:query [:account/id :account/name :account/active?]
+  {:query [:account/id :account/name :account/active? :account/equipment-count]
    :ident :account/id}
-  (let [{:keys [edit-form entity-id]} (report/form-link report-instance props :account/name)]
+  (let [{:keys [edit-form entity-id]} (report/form-link report-instance props :account/name)
+        n (or (when (number? equipment-count) equipment-count) 0)]
     (dom/div :.item
              (dom/i :.large.github.middle.aligned.icon)
              (div :.content
@@ -103,7 +106,11 @@
                     (dom/a :.header {:onClick (fn [] (form/edit! this edit-form entity-id))} name)
                     (dom/div :.header name))
                   (dom/div :.description
-                           (str (if active? "Active" "Inactive"))))))
+                           (str (if active? "Active" "Inactive") " · ")
+                           (if (pos? n)
+                             (dom/a {:onClick (fn [] #?(:cljs (rroute/route-to! report-instance EquipmentReport {:filter-account id})))}
+                                    (str n " equipment"))
+                             (str n " equipment"))))))
   #_(dom/tr
      (dom/td :.right.aligned name)
      (dom/td (str active?))))
@@ -132,10 +139,18 @@
                                                                         0 ""
                                                                         1 "center aligned"
                                                                         "collapsing"))}
+   ro/row-query-inclusion [:account/equipment-count]
    ro/form-links          {account/name AccountForm}
-   ro/column-formatters   {:account/active? (fn [this v] (if v "Yes" "No"))}
-   ro/column-headings     {:account/name "Account Name"}
-   ro/columns             [account/name account/active?]
+   ro/column-formatters   {:account/active?   (fn [_ v] (if v "Yes" "No"))
+                           :account/equipment-count (fn [report-instance v {:account/keys [id]}]
+                                                       (if (and (number? v) (pos? v))
+                                                         (dom/a {:onClick (fn []
+                                                                            #?(:cljs (rroute/route-to! report-instance EquipmentReport {:filter-account id})))}
+                                                                (str v))
+                                                         (str (or v 0))))}
+   ro/column-headings     {:account/name "Account Name"
+                           :account/equipment-count "Equipment"}
+   ro/columns             [account/name account/active? account/equipment-count]
    ro/row-pk              account/id
    ro/source-attribute    :account/all-accounts
    ro/row-visible?        (fn [{::keys [filter-name]} {:account/keys [name]}]
